@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabase';
-import type { Subscription } from 'src\\pages\\types';
+import type { Subscription } from 'src/pages/types';
 
 interface SubscriptionState {
   subscriptions: Subscription[];
@@ -21,22 +20,11 @@ export const useSubscriptionStore = create<SubscriptionState>((set) => ({
   fetchUserSubscriptions: async () => {
     try {
       set({ isLoading: true, error: null });
-      
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select(`
-          *,
-          package:packages(*)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      const response = await fetch('/api/user/subscriptions');
+      if (!response.ok) throw new Error('Failed to fetch subscriptions');
+      const data = await response.json();
 
-      if (error) throw error;
-      
       set({ subscriptions: data as Subscription[] });
     } catch (error) {
       set({ error: (error as Error).message });
@@ -48,30 +36,11 @@ export const useSubscriptionStore = create<SubscriptionState>((set) => ({
   fetchActiveSubscription: async () => {
     try {
       set({ isLoading: true, error: null });
-      
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error('User not authenticated');
 
-      const now = new Date().toISOString();
-      
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select(`
-          *,
-          package:packages(*)
-        `)
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .gte('end_time', now)
-        .order('end_time', { ascending: true })
-        .limit(1)
-        .single();
+      const response = await fetch('/api/user/subscription/active');
+      if (!response.ok) throw new Error('Failed to fetch active subscription');
+      const data = await response.json();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "No rows returned" error
-        throw error;
-      }
-      
       set({ activeSubscription: data as Subscription | null });
     } catch (error) {
       set({ error: (error as Error).message });
@@ -84,14 +53,18 @@ export const useSubscriptionStore = create<SubscriptionState>((set) => ({
   updateDataUsage: async (subscriptionId, dataUsedMb) => {
     try {
       set({ isLoading: true, error: null });
-      
-      const { error } = await supabase
-        .from('subscriptions')
-        .update({ data_used_mb: dataUsedMb })
-        .eq('id', subscriptionId);
 
-      if (error) throw error;
-      
+      const response = await fetch('/api/subscription/updateDataUsage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscriptionId, dataUsedMb }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update data usage');
+      }
+
       // Refresh the active subscription
       await useSubscriptionStore.getState().fetchActiveSubscription();
     } catch (error) {

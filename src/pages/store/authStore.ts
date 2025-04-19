@@ -1,27 +1,49 @@
-import { createClient } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || '';
-import { supabase } from 'src\\lib\\supabase.ts';
+import axios, { AxiosError } from 'axios';
+
+interface User {
+  id: string;
+  email: string;
+  phone_number: string; 
+  full_name?: string;
+  role?: string;
+  is_admin?: boolean;
+  is_verified?: boolean;
+  created_at?: string;
+}
+
+interface Session {
+  access_token: string;
+  refresh_token: string;
+  expires_at?: number;
+  token_type: string;
+}
+
+interface ErrorResponse {
+  message: string;
+}
 
 interface AuthState {
-  user: any;
-  session: any;
-  setUser: (user: any) => void;
-  setSession: (session: any) => void;
+  user: User | null;
+  session: Session | null;
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (phone: string, password: string, fullName: string) => Promise<void>;
+  signIn: (phone: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   getUser: () => Promise<void>;
 }
 
+// Get the API URL from environment or use default
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       session: null,
       setUser: (user) => set({ user }),
@@ -30,76 +52,66 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      signUp: async (email, password, fullName) => {
+      signUp: async (phone, password, fullName) => {
         try {
           set({ isLoading: true, error: null });
 
-          const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                full_name: fullName,
-              },
-            },
+          const response = await axios.post(`${API_URL}/auth/signup`, {
+            phone, 
+            password, 
+            fullName
           });
 
-          if (error) throw error;
+          const { user, session } = response.data;
 
-          if (data.user && data.session) {
-            set({
-              user: {
-                id: data.user.id,
-                email: data.user.email!,
-                full_name: data.user.user_metadata.full_name,
-                created_at: data.user.created_at!,
-              },
-              session: data.session,
-              isAuthenticated: true,
-            });
-          }
+          set({
+            user,
+            session,
+            isAuthenticated: true,
+            error: null
+          });
+          
+          // Set the token in axios defaults for future requests
+          axios.defaults.headers.common['Authorization'] = `Bearer ${session.access_token}`;
+          
         } catch (error) {
-          set({ error: (error as Error).message });
+          const axiosError = error as AxiosError<ErrorResponse>;
+          set({ 
+            error: axiosError.response?.data?.message || 'Sign up failed',
+            isAuthenticated: false 
+          });
         } finally {
           set({ isLoading: false });
         }
       },
 
-      signIn: async (email: string, password: string) => {
+      signIn: async (phone, password) => {
         try {
           set({ isLoading: true, error: null });
 
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
+          const response = await axios.post(`${API_URL}/auth/signin`, {
+            phone,
+            password
           });
 
-          if (error) throw error;
+          const { user, session } = response.data;
 
-          if (data.user) {
-            // Fetch user profile from users table
-            const { data: profileData, error: profileError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', data.user.id)
-              .single();
-
-            if (profileError) throw profileError;
-
-            set({
-              user: {
-                id: data.user.id,
-                email: data.user.email!,
-                full_name: data.user.user_metadata.full_name,
-                role: profileData.role,
-                created_at: data.user.created_at!,
-              },
-              session: data.session,
-              isAuthenticated: true,
-            });
-          }
+          set({
+            user,
+            session,
+            isAuthenticated: true,
+            error: null
+          });
+          
+          // Set the token in axios defaults for future requests
+          axios.defaults.headers.common['Authorization'] = `Bearer ${session.access_token}`;
+          
         } catch (error) {
-          set({ error: (error as Error).message });
+          const axiosError = error as AxiosError<ErrorResponse>;
+          set({ 
+            error: axiosError.response?.data?.message || 'Sign in failed',
+            isAuthenticated: false 
+          });
         } finally {
           set({ isLoading: false });
         }
@@ -107,55 +119,76 @@ export const useAuthStore = create<AuthState>()(
 
       signOut: async () => {
         try {
-          set({ isLoading: true, error: null });
-
-          const { error } = await supabase.auth.signOut();
-          if (error) throw error;
-          set({ user: null, session: null, isAuthenticated: false });
+          set({ isLoading: true });
+          
+          // Optional: Call the backend to invalidate the token
+          // await axios.post(`${API_URL}/auth/signout`);
+          
+          // Clear axios auth header
+          delete axios.defaults.headers.common['Authorization'];
+          
+          set({
+            user: null,
+            session: null,
+            isAuthenticated: false,
+            error: null
+          });
         } catch (error) {
-          set({ error: (error as Error).message });
+          const axiosError = error as AxiosError<ErrorResponse>;
+          set({ error: axiosError.response?.data?.message || 'Sign out failed' });
         } finally {
           set({ isLoading: false });
         }
       },
 
       getUser: async () => {
+        const { session } = get();
+        if (!session) return;
+        
         try {
           set({ isLoading: true, error: null });
-
-          const { data, error } = await supabase.auth.getUser();
-          if (error) throw error;
-
-          if (data.user) {
-            // Fetch user profile from users table
-            const { data: profileData, error: profileError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', data.user.id)
-              .single();
-
-            if (profileError) throw profileError;
-
+          
+          const response = await axios.get(`${API_URL}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`
+            }
+          });
+          
+          set({
+            user: response.data,
+            isAuthenticated: true,
+            error: null
+          });
+        } catch (error) {
+          const axiosError = error as AxiosError<ErrorResponse>;
+          // If token is expired or invalid, clear the session
+          if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
             set({
-              user: {
-                id: data.user.id,
-                email: data.user.email!,
-                full_name: data.user.user_metadata.full_name,
-                role: profileData.role,
-                created_at: data.user.created_at!,
-              },
-              isAuthenticated: true,
+              user: null,
+              session: null,
+              isAuthenticated: false
             });
           }
-        } catch (error) {
-          set({ error: (error as Error).message });
+          set({ error: axiosError.response?.data?.message || 'Failed to get user data' });
         } finally {
           set({ isLoading: false });
         }
-      },
+      }
     }),
     {
-      name: 'auth-storage', // name of the item in the storage (must be unique)
+      name: 'auth-storage',
+      // Only persist these fields
+      partialize: (state) => ({
+        user: state.user,
+        session: state.session,
+        isAuthenticated: state.isAuthenticated
+      })
     }
   )
 );
+
+// Initialize axios with the token if it exists
+const { session } = useAuthStore.getState();
+if (session?.access_token) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${session.access_token}`;
+}

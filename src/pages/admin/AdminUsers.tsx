@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { User, Edit, Trash2, Check, X } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 
 interface UserType {
   id: string;
@@ -30,18 +29,72 @@ const AdminUsers: React.FC = () => {
     fetchUsers();
   }, []);
 
+  // Function to open modal and populate form for editing
+  const openEditModal = (user: UserType) => {
+    setEditingUser(user);
+    setEmail(user.email);
+    setFullName(user.full_name);
+    setPhoneNumber(user.phone_number);
+    setRole(user.role);
+    setIsActive(user.is_active);
+    setIsModalOpen(true);
+  };
+
+  // Function to close modal and reset form
+  const closeModal = () => {
+    setEditingUser(null);
+    setEmail('');
+    setFullName('');
+    setPhoneNumber('');
+    setRole('user');
+    setIsActive(true);
+    setIsModalOpen(false);
+  };
+
+  // Function to handle form submission for editing user
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await fetch(`/api/admin/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          full_name: fullName,
+          phone_number: phoneNumber,
+          role,
+          is_active: isActive,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update user');
+      }
+
+      await fetchUsers();
+      closeModal();
+    } catch (error) {
+      setError((error as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
+      const response = await fetch('/api/admin/users');
+      if (!response.ok) throw new Error('Failed to fetch users');
+      const data = await response.json();
+
       setUsers(data as UserType[]);
     } catch (error) {
       setError((error as Error).message);
@@ -53,14 +106,16 @@ const AdminUsers: React.FC = () => {
   const toggleUserStatus = async (user: UserType) => {
     try {
       setIsLoading(true);
-      
-      const { error } = await supabase
-        .from('users')
-        .update({ is_active: !user.is_active })
-        .eq('id', user.id);
-        
-      if (error) throw error;
-      
+
+      const response = await fetch(`/api/admin/users/${user.id}/toggleStatus`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update user status');
+      }
+
       await fetchUsers();
     } catch (error) {
       setError((error as Error).message);
@@ -149,9 +204,7 @@ const AdminUsers: React.FC = () => {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => toggleUserStatus(user)}
-                        className={`${
-                          user.is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'
-                        }`}
+                        className={user.is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}
                       >
                         {user.is_active ? <X size={18} /> : <Check size={18} />}
                       </button>
