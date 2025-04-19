@@ -1,26 +1,32 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Wifi, Mail, Lock, User } from 'lucide-react';
-import { useAuthStore } from 'src\\pages\\store\\authStore';
+import { Wifi, User, Phone, Lock } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
+import { useTheme } from '../../context/ThemeContext';
 
 const Register: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const { signUp, isLoading, error } = useAuthStore();
+  const { theme } = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await signUp(email, password, fullName);
+    await signUp(phoneNumber, password, fullName);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <div className={`min-h-screen flex items-center justify-center ${
+      theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'
+    }`}>
+      <div className={`p-8 rounded-lg shadow-md w-full max-w-md ${
+        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+      } rainbow-edges`}>
         <div className="flex justify-center mb-6">
           <div className="flex items-center space-x-2">
             <Wifi className="h-10 w-10 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-800">HotSpot</h1>
+            <h1 className="text-3xl font-bold text-gray-800">BenNet</h1>
           </div>
         </div>
         
@@ -54,20 +60,20 @@ const Register: React.FC = () => {
           </div>
           
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail size={18} className="text-gray-400" />
+                <Phone size={18} className="text-gray-400" />
               </div>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="phoneNumber"
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
                 className="pl-10 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="you@example.com"
+                placeholder="123-456-7890"
                 required
               />
             </div>

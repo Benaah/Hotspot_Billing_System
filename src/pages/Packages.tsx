@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, Database, Check, CreditCard } from 'lucide-react';
 import { usePackageStore } from './store/packageStore';
+import { useTheme } from '../context/ThemeContext';
 import type { Package } from './types';
+import LoadingRouter from '../components/LoadingRouter';
 
 const Packages: React.FC = () => {
   const { packages, fetchPackages, purchasePackage, isLoading, error } = usePackageStore();
@@ -9,6 +11,7 @@ const Packages: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     fetchPackages();
@@ -30,10 +33,10 @@ const Packages: React.FC = () => {
     }
   };
 
-  if (isLoading && packages.length === 0) {
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <LoadingRouter size="medium" />
       </div>
     );
   }
@@ -47,10 +50,14 @@ const Packages: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className={theme === 'dark' ? 'text-white' : 'text-gray-800'}>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Internet Packages</h1>
-        <p className="text-gray-600">Choose the perfect package for your needs</p>
+        <h1 className={`text-2xl font-bold ${
+          theme === 'dark' ? 'text-white' : 'text-gray-800'
+        } mb-2`}>Internet Packages</h1>
+        <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
+          Choose the perfect package for your needs
+        </p>
       </div>
 
       {purchaseSuccess && (

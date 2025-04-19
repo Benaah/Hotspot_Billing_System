@@ -1,48 +1,63 @@
 import React, { useState } from 'react';
-import { supabase } from '../../lib/supabase';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
-    setError('');
+    setIsLoading(true);
+    setMessage(null);
 
-    const { error } = await supabase.auth.api.resetPasswordForEmail(email);
-    if (error) {
-      setError(error.message);
-    } else {
-      setMessage('Password reset email sent. Please check your inbox.');
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to send reset password email');
+      }
+
+      setMessage({ type: 'success', text: 'Password reset email sent successfully.' });
+    } catch (error) {
+      setMessage({ type: 'error', text: (error as Error).message });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
+    <div className="max-w-md mx-auto mt-10">
       <h1 className="text-2xl font-bold mb-4">Forgot Password</h1>
+      {message && (
+        <div className={`p-4 mb-4 rounded ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {message.text}
+        </div>
+      )}
       <form onSubmit={handleResetPassword}>
-        <label htmlFor="email" className="block mb-2 font-semibold">
+        <label htmlFor="email" className="block mb-2 font-medium">
           Email Address
         </label>
         <input
           id="email"
           type="email"
-          className="w-full p-2 border border-gray-300 rounded mb-4"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className="w-full p-2 border border-gray-300 rounded mb-4"
         />
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          disabled={isLoading}
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
         >
-          Reset Password
+          {isLoading ? 'Sending...' : 'Send Reset Email'}
         </button>
       </form>
-      {message && <p className="mt-4 text-green-600">{message}</p>}
-      {error && <p className="mt-4 text-red-600">{error}</p>}
     </div>
   );
 };

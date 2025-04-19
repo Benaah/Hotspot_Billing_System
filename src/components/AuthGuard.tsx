@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from 'src\\pages\\store\\authStore';
+import { useAuthStore } from '../pages/store/authStore';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -11,45 +11,35 @@ interface AuthGuardProps {
 const AuthGuard: React.FC<AuthGuardProps> = ({ 
   children, 
   requireAuth = true,
-  requireAdmin = false
+  requireAdmin = false 
 }) => {
-  const { user, getUser, isLoading } = useAuthStore();
   const navigate = useNavigate();
-
+  const { user } = useAuthStore();
+  
   useEffect(() => {
-    const checkAuth = async () => {
-      await getUser();
-    };
-    
-    checkAuth();
-  }, [getUser]);
-
-  useEffect(() => {
-    if (isLoading) return;
-
+    // Handle authentication logic
     if (requireAuth && !user) {
-      navigate('/login');
+      navigate('/login', { replace: true });
       return;
     }
 
+    // Handle non-authenticated routes (login, register, etc.)
     if (!requireAuth && user) {
-      navigate('/');
+      navigate('/', { replace: true });
       return;
     }
 
-    if (requireAdmin && (!user || !user.email.endsWith('@admin.com'))) {
-      navigate('/');
+    // Handle admin routes
+    if (requireAdmin && (!user || !user.is_admin)) {
+      navigate('/', { replace: true });
       return;
     }
-  }, [user, isLoading, navigate, requireAuth, requireAdmin]);
+  }, [navigate, user, requireAuth, requireAdmin]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  // Show children only when authentication requirements are met
+  if (requireAuth && !user) return null;
+  if (!requireAuth && user) return null;
+  if (requireAdmin && (!user || !user.is_admin)) return null;
 
   return <>{children}</>;
 };

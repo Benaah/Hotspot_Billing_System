@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from 'src\\lib\\supabase';
-import type { Package } from 'src\\pages\\types';
+import type { Package } from '../types';
 
 interface PackageState {
   packages: Package[];
@@ -10,7 +9,7 @@ interface PackageState {
   purchasePackage: (packageId: string, paymentMethod: string) => Promise<boolean>;
 }
 
-export const usePackageStore = create<PackageState>((set, get) => ({
+export const usePackageStore = create<PackageState>((set) => ({
   packages: [],
   isLoading: false,
   error: null,
@@ -18,15 +17,11 @@ export const usePackageStore = create<PackageState>((set, get) => ({
   fetchPackages: async () => {
     try {
       set({ isLoading: true, error: null });
-      
-      const { data, error } = await supabase
-        .from('packages')
-        .select('*')
-        .eq('is_active', true)
-        .order('price');
 
-      if (error) throw error;
-      
+      const response = await fetch('/api/packages?is_active=true&order=price');
+      if (!response.ok) throw new Error('Failed to fetch packages');
+      const data = await response.json();
+
       set({ packages: data as Package[] });
     } catch (error) {
       set({ error: (error as Error).message });
@@ -38,54 +33,18 @@ export const usePackageStore = create<PackageState>((set, get) => ({
   purchasePackage: async (packageId, paymentMethod) => {
     try {
       set({ isLoading: true, error: null });
-      
-      // Get the user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) throw new Error('User not authenticated');
 
-      // Get the package details
-      const { data: packageData, error: packageError } = await supabase
-        .from('packages')
-        .select('*')
-        .eq('id', packageId)
-        .single();
-      
-      if (packageError) throw packageError;
-      if (!packageData) throw new Error('Package not found');
+      const response = await fetch('/api/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ packageId, paymentMethod }),
+      });
 
-      const now = new Date();
-      const endTime = new Date(now.getTime() + packageData.duration_hours * 60 * 60 * 1000);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Purchase failed');
+      }
 
-      // Create a subscription
-      const { data: subscription, error: subscriptionError } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: user.id,
-          package_id: packageId,
-          start_time: now.toISOString(),
-          end_time: endTime.toISOString(),
-          is_active: true,
-          data_used_mb: 0,
-        })
-        .select()
-        .single();
-
-      if (subscriptionError) throw subscriptionError;
-
-      // Create a transaction
-      const { error: transactionError } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: user.id,
-          subscription_id: subscription.id,
-          amount: packageData.price,
-          status: 'completed', // In a real app, this would be 'pending' until payment is confirmed
-          payment_method: paymentMethod,
-        });
-
-      if (transactionError) throw transactionError;
-      
       return true;
     } catch (error) {
       set({ error: (error as Error).message });

@@ -1,3 +1,147 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Flowing rainbow edges animation */
+@keyframes rainbow-border {
+  0% {
+    border-color: red;
+    box-shadow: 0 0 8px red;
+  }
+  14% {
+    border-color: orange;
+    box-shadow: 0 0 8px orange;
+  }
+  28% {
+    border-color: yellow;
+    box-shadow: 0 0 8px yellow;
+  }
+  42% {
+    border-color: green;
+    box-shadow: 0 0 8px green;
+  }
+  56% {
+    border-color: blue;
+    box-shadow: 0 0 8px blue;
+  }
+  70% {
+    border-color: indigo;
+    box-shadow: 0 0 8px indigo;
+  }
+  84% {
+    border-color: violet;
+    box-shadow: 0 0 8px violet;
+  }
+  100% {
+    border-color: red;
+    box-shadow: 0 0 8px red;
+  }
+}
+
+.rainbow-edges {
+  border-width: 3px;
+  border-style: solid;
+  border-radius: 0.5rem; /* match rounded-lg */
+  animation: rainbow-border 4s linear infinite;
+  box-shadow: 0 0 8px red;
+}
+
+/* Loading Animation */
+.router-body {
+  width: 60%;
+  height: 50%;
+  border-radius: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.router-antenna {
+  position: absolute;
+  width: 4px;
+  height: 20px;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.router-antenna-tip {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.router-lights {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 1;
+}
+
+.router-light {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: blink 1.5s infinite ease-in-out;
+}
+
+.wifi-signal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+}
+
+.wifi-signal span {
+  display: block;
+  width: 2px;
+  height: 10px;
+  margin: 0 auto;
+  border-radius: 10px;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.wifi-signal span:nth-child(1) {
+  height: 8px;
+  animation-duration: 1.8s;
+}
+
+.wifi-signal span:nth-child(2) {
+  height: 12px;
+  animation-duration: 2s;
+}
+
+.wifi-signal span:nth-child(3) {
+  height: 16px;
+  animation-duration: 2.2s;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
