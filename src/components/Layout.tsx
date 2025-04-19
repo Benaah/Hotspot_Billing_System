@@ -17,7 +17,7 @@ const Layout: React.FC = () => {
     return <Outlet />;
   }
 
-  const isAdmin = user.email.endsWith('@admin.com'); // Simple admin check for demo purposes
+  const isAdmin = user.role === 'admin'; // Use role from user object
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: <BarChart2 size={20} /> },

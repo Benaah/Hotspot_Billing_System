@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://vsgkofrpybvndnqzkfuh.supabase.co';
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZ2tvZnJweWJ2bmRucXprZnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4MjI3NTYsImV4cCI6MjA1NjM5ODc1Nn0.S6YlXHf_2RhWO5qtABnjh3V7owz8I3_HG50X-1kfHZk';
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || '';
 import { supabase } from 'src\\lib\\supabase.ts';
 
 interface AuthState {
@@ -77,11 +77,21 @@ export const useAuthStore = create<AuthState>()(
           if (error) throw error;
 
           if (data.user) {
+            // Fetch user profile from users table
+            const { data: profileData, error: profileError } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', data.user.id)
+              .single();
+
+            if (profileError) throw profileError;
+
             set({
               user: {
                 id: data.user.id,
                 email: data.user.email!,
                 full_name: data.user.user_metadata.full_name,
+                role: profileData.role,
                 created_at: data.user.created_at!,
               },
               session: data.session,
@@ -117,11 +127,21 @@ export const useAuthStore = create<AuthState>()(
           if (error) throw error;
 
           if (data.user) {
+            // Fetch user profile from users table
+            const { data: profileData, error: profileError } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', data.user.id)
+              .single();
+
+            if (profileError) throw profileError;
+
             set({
               user: {
                 id: data.user.id,
                 email: data.user.email!,
                 full_name: data.user.user_metadata.full_name,
+                role: profileData.role,
                 created_at: data.user.created_at!,
               },
               isAuthenticated: true,
