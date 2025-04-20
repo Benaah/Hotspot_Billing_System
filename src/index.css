@@ -46,102 +46,110 @@
   box-shadow: 0 0 8px red;
 }
 
-/* Loading Animation */
-.router-body {
-  width: 60%;
-  height: 50%;
-  border-radius: 8px;
-  position: relative;
-  z-index: 1;
+/* LoadingRouter.css */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
+@keyframes blink {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+@keyframes antennaWave {
+  0% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+  100% { transform: rotate(-5deg); }
+}
+
+/* Router body */
+.router-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Router antenna */
 .router-antenna {
   position: absolute;
-  width: 4px;
-  height: 20px;
-  top: -15px;
+  top: -20px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 2;
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  z-index: 10;
 }
 
 .router-antenna-tip {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  top: -6px;
+  top: -8px;
   left: 50%;
   transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
 }
 
+/* Router lights */
 .router-lights {
   position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 10px;
+  left: 0;
+  width: 100%;
   display: flex;
-  gap: 4px;
-  z-index: 1;
+  justify-content: center;
+  gap: 5px;
 }
 
 .router-light {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  animation: blink 1.5s infinite ease-in-out;
+  animation: blink 1.5s infinite;
 }
 
+/* WiFi signal */
 .wifi-signal {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 0;
+  top: 10px;
+  right: 10px;
 }
 
 .wifi-signal span {
   display: block;
   width: 2px;
   height: 10px;
-  margin: 0 auto;
-  border-radius: 10px;
-  animation: pulse 2s infinite ease-in-out;
+  margin: 0 2px;
+  animation: wifiPulse 1.5s infinite;
 }
 
 .wifi-signal span:nth-child(1) {
-  height: 8px;
-  animation-duration: 1.8s;
+  height: 6px;
+  animation-duration: 1.3s;
 }
 
 .wifi-signal span:nth-child(2) {
   height: 12px;
-  animation-duration: 2s;
+  animation-duration: 1.6s;
 }
 
 .wifi-signal span:nth-child(3) {
-  height: 16px;
-  animation-duration: 2.2s;
+  height: 18px;
+  animation-duration: 1.9s;
 }
 
-@keyframes blink {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.5;
-    transform: scale(0.9);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
+@keyframes wifiPulse {
+  0% { transform: scaleY(1); opacity: 0.3; }
+  50% { transform: scaleY(1.5); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0.3; }
 }

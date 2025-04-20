@@ -5,19 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { transactionService } from '../services/transactionService';
 import { mpesaService } from '../services/mpesaService';
 import LoadingRouter from '../components/LoadingRouter';
-
-interface Transaction {
-  transaction_id: string;
-  created_at: string;
-  amount: number;
-  status: 'success' | 'failed' | 'pending';
-  payment_method: string;
-  merchant_request_id: string;
-  checkout_request_id: string;
-  mpesa_receipt_number?: string;
-  userId?: number;
-  phoneNumber?: string;
-}
+import type { Transaction, TransactionResponse } from './types/transactions';
 
 const Billing: React.FC = () => {
   const { user } = useAuthStore();
@@ -35,7 +23,10 @@ const Billing: React.FC = () => {
       setIsLoading(true);
       setError(null);
       if (!user) throw new Error('User not authenticated');
-      const transactions = await transactionService.getUserTransactions(Number(user.id));
+      const transactions: Transaction[] = await transactionService.getUserTransactions(Number(user.id));
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No transactions found');
+      }
       setTransactions(transactions);
     } catch (error) {
       setError((error as Error).message);
@@ -74,18 +65,19 @@ const Billing: React.FC = () => {
     const formattedPhone = phoneNumber.replace(/^(?:\+254|0)/, '254');
 
     try {
-      const response = await mpesaService.initiateSTKPush(formattedPhone, Number(amount));
+      const response: TransactionResponse = await mpesaService.initiateSTKPush(formattedPhone, Number(amount));
 
       if (response.ResponseCode === '0') {
         setSuccess('Payment initiated successfully. Please check your phone to complete the transaction.');
         
-        // Store transaction details in your backend with proper type conversion
+        // Store transaction details in your backend
         await transactionService.createTransaction({
-          userId: parseInt(String(user.id), 10), // Convert to number explicitly
+          userId: Number(user.id),
           amount: Number(amount),
           phoneNumber: formattedPhone,
           merchantRequestId: response.MerchantRequestID,
-          checkoutRequestId: response.CheckoutRequestID
+          checkoutRequestId: response.CheckoutRequestID,
+          paymentMethod: 'mpesa'
         });
 
         // Update transaction history

@@ -1,19 +1,34 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-const { Pool } = require('pg');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import pkg from 'pg';
+import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+
+// Load environment variables
+dotenv.config();
 
 // Create Express app
 const app = express();
 const port = process.env.PORT || 5000;
+const { Pool } = pkg;
 
 // Set up middleware
 app.use(helmet()); // Security headers
+const allowedOrigins = [process.env.CORS_ORIGIN || 'http://localhost:3000', 'http://localhost:5173'];
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: function(origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, origin);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'x-auth-token']
 }));
@@ -42,25 +57,8 @@ pool.query('SELECT NOW()', (err, res) => {
   }
 });
 
-// Routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const packageRoutes = require('./routes/packages');
-const subscriptionRoutes = require('./routes/subscriptions');
-const transactionRoutes = require('./routes/transactions');
-const mpesaRoutes = require('./routes/mpesa');
-
-// Admin routes
-const adminDashboardRoutes = require('./routes/admin');
-const adminUserRoutes = require('./routes/admin/users');
-const adminPackageRoutes = require('./routes/admin/packages');
-const adminSubscriptionRoutes = require('./routes/admin/subscriptions');
-const adminTransactionRoutes = require('./routes/admin/transactions');
-
-const jwt = require('jsonwebtoken');
-
-// Ensure your auth routes are properly configured
-app.use('/api/auth', authRoutes);
+// Import centralized routes
+import routes from './routes/index.js';
 
 // Add a middleware to verify JWT tokens
 const authenticateToken = (req, res, next) => {
@@ -79,18 +77,10 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Export the middleware for use in route files
-app.locals.authenticateToken = authenticateToken;app.use('/api/users', userRoutes);
-app.use('/api/packages', packageRoutes);
-app.use('/api/subscriptions', subscriptionRoutes);
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/mpesa', mpesaRoutes);
+app.locals.authenticateToken = authenticateToken;
 
-// Use admin routes
-app.use('/api/admin', adminDashboardRoutes);
-app.use('/api/admin/users', adminUserRoutes);
-app.use('/api/admin/packages', adminPackageRoutes);
-app.use('/api/admin/subscriptions', adminSubscriptionRoutes);
-app.use('/api/admin/transactions', adminTransactionRoutes);
+// Use centralized routes
+app.use('/api', routes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

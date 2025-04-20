@@ -1,5 +1,5 @@
 import api from './api';
-import { Transaction } from '../pages/types';
+import type { Transaction } from '../pages/types/transactions';
 
 // Define interfaces for the request and response data
 interface CreateTransactionRequest {

@@ -1,11 +1,21 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const db = require('../db');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
+import db from '../db.js';
+import auth from '../middleware/auth.js';
+import admin from '../middleware/admin.js';
+import reportsRouter from './admin/reports.js';
+import customerSupportRouter from './admin/customerSupport.js';
+import promotionsRouter from './admin/promotions.js';
+import hotspotDevicesRouter from './admin/hotspotDevices.js';
 
 // Protect all admin routes with auth and admin middleware
 router.use(auth, admin);
+
+// Mount reports router
+router.use('/reports', reportsRouter);
+router.use('/customer-support', customerSupportRouter);
+router.use('/promotions', promotionsRouter);
+router.use('/hotspot-devices', hotspotDevicesRouter);
 
 // Get dashboard statistics
 router.get('/dashboard', async (req, res) => {
@@ -109,5 +119,56 @@ router.get('/analytics', async (req, res) => {
   }
 });
 
-// Export router
-module.exports = router;
+// Get all users
+router.get('/users', async (req, res) => {
+  try {
+    const result = await db.query('SELECT id, email, full_name, phone_number, is_active, created_at, role FROM users ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ message: 'Server error fetching users' });
+  }
+});
+
+// Update user details
+router.put('/users/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { email, full_name, phone_number, role, is_active } = req.body;
+
+    await db.query(
+      'UPDATE users SET email = $1, full_name = $2, phone_number = $3, role = $4, is_active = $5 WHERE id = $6',
+      [email, full_name, phone_number, role, is_active, userId]
+    );
+
+    res.status(200).json({ message: 'User updated successfully' });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({ message: 'Server error updating user' });
+  }
+});
+
+// Toggle user active status
+router.post('/users/:id/toggleStatus', async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Get current status
+    const result = await db.query('SELECT is_active FROM users WHERE id = $1', [userId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const currentStatus = result.rows[0].is_active;
+    const newStatus = !currentStatus;
+
+    await db.query('UPDATE users SET is_active = $1 WHERE id = $2', [newStatus, userId]);
+
+    res.status(200).json({ message: 'User status updated successfully', is_active: newStatus });
+  } catch (error) {
+    console.error('Toggle user status error:', error);
+    res.status(500).json({ message: 'Server error toggling user status' });
+  }
+});
+
+export default router;
