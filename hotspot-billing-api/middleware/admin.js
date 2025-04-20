@@ -1,4 +1,4 @@
-module.exports = function(req, res, next) {
+export default function (req, res, next) {
   // Check if user is admin
   if (req.user && req.user.role === 'admin') {
     next();

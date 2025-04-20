@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const db = require('../db');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
+import db from '../db.js';
+import auth from '../middleware/auth.js';
+import admin from '../middleware/admin.js';
 
 // Protect all admin routes with auth and admin middleware
 router.use(auth, admin);
@@ -109,5 +109,4 @@ router.get('/analytics', async (req, res) => {
   }
 });
 
-// Export router
-module.exports = router;
+export default router;

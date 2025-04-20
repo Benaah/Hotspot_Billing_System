@@ -21,6 +21,7 @@
         "buffer": "^6.0.3",
         "chart.js": "^4.4.9",
         "date-fns": "^3.3.1",
+        "jsonwebtoken": "^9.0.2",
         "lucide-react": "^0.344.0",
         "pdfjs-dist": "^5.1.91",
         "pg": "^8.14.1",

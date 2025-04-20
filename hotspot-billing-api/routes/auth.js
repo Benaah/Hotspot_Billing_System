@@ -2,7 +2,10 @@ import express from 'express';
 const router = express.Router();
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { Pool } from 'pg';
+import { generateToken } from '../../src/utils/jwt.js';
+import pkg from 'pg';
+
+const { Pool } = pkg;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -36,13 +39,13 @@ router.post('/signup', async (req, res) => {
     const user = result.rows[0];
     
     // Generate tokens
-    const accessToken = jwt.sign(
+    const accessToken = generateToken(
       { id: user.id, is_admin: user.is_admin },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
     
-    const refreshToken = jwt.sign(
+    const refreshToken = generateToken(
       { id: user.id },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: '7d' }
@@ -94,13 +97,13 @@ router.post('/signin', async (req, res) => {
     }
     
     // Generate tokens
-    const accessToken = jwt.sign(
+    const accessToken = generateToken(
       { id: user.id, is_admin: user.is_admin },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
     
-    const refreshToken = jwt.sign(
+    const refreshToken = generateToken(
       { id: user.id },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: '7d' }
