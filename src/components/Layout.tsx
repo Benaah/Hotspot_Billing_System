@@ -33,17 +33,22 @@ const Layout: React.FC = () => {
     { path: '/subscriptions', label: 'My Subscriptions', icon: <Wifi size={20} /> },
     { path: '/billing', label: 'Billing', icon: <CreditCard size={20} /> },
     { path: '/profile', label: 'Profile', icon: <User size={20} /> },
-    { path: '/invoice', label: 'Invoice', icon: <CreditCard size={20} /> },
+    { path: '/invoice/1', label: 'Invoice', icon: <CreditCard size={20} /> },
+    { path: '/promotions', label: 'Promotions', icon: <BarChart2 size={20} /> },
+    { path: '/support', label: 'Support', icon: <User size={20} /> },
   ];
 
   if (isAdmin) {
     navItems.push(
-      { path: '/admin/packages', label: 'Manage Packages', icon: <Package size={20} /> },
-      { path: '/admin/users', label: 'Manage Users', icon: <User size={20} /> },
+      { path: '/admin/packages', label: 'Packages', icon: <Package size={20} /> },
+      { path: '/admin/users', label: 'Users', icon: <User size={20} /> },
       { path: '/admin/analytics', label: 'Analytics', icon: <BarChart2 size={20} /> },
       { path: '/admin/dashboard', label: 'Dashboard', icon: <BarChart2 size={20} /> },
-      { path: '/admin/mikrotik', label: 'Mikrotik', icon: <Package size={20} /> },
-      { path: '/admin/reports', label: 'Reports', icon: <BarChart2 size={20} /> }
+      { path: '/admin/mikrotik', label: 'Mikrotiks', icon: <Package size={20} /> },
+      { path: '/admin/reports', label: 'Reports', icon: <BarChart2 size={20} /> },
+      { path: '/admin/customersupport', label: 'Customer Support', icon: <User size={20} /> },
+      { path: '/admin/hotspotdevices', label: 'Hotspot Devices', icon: <Wifi size={20} /> },
+      { path: '/admin/promotions', label: 'Promotions', icon: <BarChart2 size={20} /> }
     );
   }
 

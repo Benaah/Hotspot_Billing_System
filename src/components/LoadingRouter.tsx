@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
 interface LoadingRouterProps {
@@ -7,7 +7,20 @@ interface LoadingRouterProps {
 
 const LoadingRouter: React.FC<LoadingRouterProps> = ({ size = 'medium' }) => {
   const { theme } = useTheme();
-  
+  const [pulse, setPulse] = useState(false);
+
+  // Create pulsing animation
+  const startPulse = () => {
+    setPulse(true);
+    setTimeout(() => setPulse(false), 1000);
+  };
+
+  // Trigger pulse animation periodically
+  useEffect(() => {
+    const interval = setInterval(startPulse, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   const sizeClasses = {
     small: 'w-16 h-16 scale-75',
     medium: 'w-20 h-20',
@@ -18,37 +31,43 @@ const LoadingRouter: React.FC<LoadingRouterProps> = ({ size = 'medium' }) => {
     routerColor: theme === 'dark' ? '#1d4ed8' : '#2563eb',
     routerBaseColor: theme === 'dark' ? '#1e40af' : '#1d4ed8',
     routerLightColor: theme === 'dark' ? '#93c5fd' : '#60a5fa',
-    signalColor: theme === 'dark' ? '#93c5fd' : '#60a5fa'
+    signalColor: theme === 'dark' ? '#93c5fd' : '#60a5fa',
+    glowColor: theme === 'dark' ? 'rgba(147, 197, 253, 0.5)' : 'rgba(96, 165, 250, 0.5)'
   };
 
   return (
     <div className={`flex justify-center items-center p-4 ${sizeClasses[size]}`}>
       <div className="relative">
-        {/* Router body */}
+        {/* Router body with glow effect */}
         <div 
           className="router-body"
           style={{
             backgroundColor: themeColors.routerBaseColor,
-            border: `3px solid ${themeColors.routerColor}`
+            border: `3px solid ${themeColors.routerColor}`,
+            boxShadow: `${themeColors.glowColor} 0 0 10px ${pulse ? '20px' : '10px'}`,
+            animation: 'pulse 2s infinite',
+            transition: 'box-shadow 0.5s'
           }}
         ></div>
 
-        {/* Router antenna */}
+        {/* Router antenna with pulsing light */}
         <div 
           className="router-antenna"
           style={{
-            backgroundColor: themeColors.routerColor
+            backgroundColor: themeColors.routerColor,
+            animation: 'antennaWave 3s infinite'
           }}
         >
           <div 
             className="router-antenna-tip"
             style={{
-              backgroundColor: themeColors.routerLightColor
+              backgroundColor: themeColors.routerLightColor,
+              animation: 'blink 1s infinite'
             }}
           ></div>
         </div>
 
-        {/* Router lights */}
+        {/* Router lights with staggered animation */}
         <div className="router-lights">
           <div 
             className="router-light"
@@ -76,7 +95,7 @@ const LoadingRouter: React.FC<LoadingRouterProps> = ({ size = 'medium' }) => {
           ></div>
         </div>
 
-        {/* WiFi signal */}
+        {/* WiFi signal with smooth animation */}
         <div className="wifi-signal">
           <span 
             style={{

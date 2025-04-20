@@ -12,6 +12,8 @@ import AuthGuard from './components/AuthGuard';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import TermsOfService from './pages/auth/TermsOfService';
+import PrivacyPolicy from './pages/auth/PrivacyPolicy';
 
 // User Pages
 import Dashboard from './pages/Dashboard';
@@ -20,6 +22,8 @@ import Subscriptions from './pages/Subscriptions';
 import Billing from './pages/Billing';
 import Profile from './pages/Profile';
 import Invoice from './pages/Invoice';
+import PromotionsView from './pages/PromotionsView';
+import SupportContact from './pages/SupportContact';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -27,6 +31,10 @@ import AdminPackages from './pages/admin/AdminPackages';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminReports from './pages/admin/AdminReports';
+import AdminCustomerSupport from './pages/admin/AdminCustomerSupport';
+import AdminHotspotDevices from './pages/admin/AdminHotspotDevices';
+import AdminPromotions from './pages/admin/AdminPromotions';
+import AdminMikrotik from './pages/admin/AdminMikrotik';
 
 function App() {
   const { getUser } = useAuthStore();
@@ -53,6 +61,16 @@ function App() {
           <Route path="/forgotpassword" element={
             <AuthGuard requireAuth={false}>
               <ForgotPassword />
+            </AuthGuard>
+          } />
+          <Route path="/terms-of-service" element={
+            <AuthGuard requireAuth={false}>
+              <TermsOfService />
+            </AuthGuard>
+          } />
+          <Route path="/privacy-policy" element={
+            <AuthGuard requireAuth={false}>
+              <PrivacyPolicy />
             </AuthGuard>
           } />
 
@@ -89,6 +107,16 @@ function App() {
                 <Invoice />
               </AuthGuard>
             } />
+            <Route path="promotions" element={
+              <AuthGuard>
+                <PromotionsView />
+              </AuthGuard>
+            } />
+            <Route path="support" element={
+              <AuthGuard>
+                <SupportContact />
+              </AuthGuard>
+            } />
 
             {/* Admin Routes */}
             <Route path="/admin" element={
@@ -114,6 +142,31 @@ function App() {
             <Route path="admin/reports" element={
               <AuthGuard requireAdmin>
                 <AdminReports />
+              </AuthGuard>
+            } />
+            <Route path="admin/customersupport" element={
+              <AuthGuard requireAdmin>
+                <AdminCustomerSupport />
+              </AuthGuard>
+            } />
+            <Route path="admin/hotspotdevices" element={
+              <AuthGuard requireAdmin>
+                <AdminHotspotDevices />
+              </AuthGuard>
+            } />
+            <Route path="admin/promotions" element={
+              <AuthGuard requireAdmin>
+                <AdminPromotions />
+              </AuthGuard>
+            } />
+            <Route path="admin/dashboard" element={
+              <AuthGuard requireAdmin>
+                <AdminDashboard />
+              </AuthGuard>
+            } />
+            <Route path="admin/mikrotik" element={
+              <AuthGuard requireAdmin>
+                <AdminMikrotik />
               </AuthGuard>
             } />
           </Route>

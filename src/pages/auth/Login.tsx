@@ -105,6 +105,14 @@ const Login: React.FC = () => {
           </button>
         </form>
 
+        <div className={`mt-4 text-right`}>
+          <Link to="/forgot-password" className={`text-sm font-medium ${
+            theme === 'dark' ? 'text-blue-400 hover:text-blue-500' : 'text-blue-600 hover:text-blue-700'
+          }`}>
+            Forgot password?
+          </Link>
+        </div>
+
         <div className={`mt-6 text-center text-sm ${
           theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
         }`}>

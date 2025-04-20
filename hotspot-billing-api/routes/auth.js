@@ -210,4 +210,47 @@ router.post('/signout', (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
+// Forgot password - reset password by verifying username and phone number
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { username, phoneNumber } = req.body;
+
+    if (!username || !phoneNumber) {
+      return res.status(400).json({ message: 'Username and phone number are required' });
+    }
+
+    // Find user by username and phone number
+    const result = await pool.query(
+      'SELECT * FROM users WHERE full_name = $1 AND phone_number = $2',
+      [username, phoneNumber]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found with provided username and phone number' });
+    }
+
+    const user = result.rows[0];
+
+    // Generate a new random password (for example, 8 characters alphanumeric)
+    const newPassword = Math.random().toString(36).slice(-8);
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update user's password in database
+    await pool.query(
+      'UPDATE users SET password = $1 WHERE id = $2',
+      [hashedPassword, user.id]
+    );
+
+    // TODO: Send new password to user via SMS or other means
+    // For now, just return the new password in response (not secure for production)
+    res.status(200).json({ message: 'Password reset successfully', newPassword });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Server error during password reset' });
+  }
+});
+
 export default router;

@@ -57,26 +57,8 @@ pool.query('SELECT NOW()', (err, res) => {
   }
 });
 
-// Routes
-import authRoutes from './routes/auth.js';
-import userRoutes from './routes/users.js';
-import packageRoutes from './routes/packages.js';
-import subscriptionRoutes from './routes/subscriptions.js';
-import transactionRoutes from './routes/transactions.js';
-import mpesaRoutes from './routes/mpesa.js';
-
-// Admin routes
-import adminDashboardRoutes from './routes/admin.js';
-import adminUserRoutes from './routes/admin/users.js';
-import adminPackageRoutes from './routes/admin/packages.js';
-import adminSubscriptionRoutes from './routes/admin/subscriptions.js';
-import adminTransactionRoutes from './routes/admin/transactions.js';
-
-// Import WhatsApp routes
-import whatsappRoutes from './routes/whatsapp.js';
-
-// Ensure your auth routes are properly configured
-app.use('/api/auth', authRoutes);
+// Import centralized routes
+import routes from './routes/index.js';
 
 // Add a middleware to verify JWT tokens
 const authenticateToken = (req, res, next) => {
@@ -97,21 +79,8 @@ const authenticateToken = (req, res, next) => {
 // Export the middleware for use in route files
 app.locals.authenticateToken = authenticateToken;
 
-app.use('/api/users', userRoutes);
-app.use('/api/packages', packageRoutes);
-app.use('/api/subscriptions', subscriptionRoutes);
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/mpesa', mpesaRoutes);
-
-// Use WhatsApp routes
-app.use('/api/whatsapp', whatsappRoutes);
-
-// Use admin routes
-app.use('/api/admin', adminDashboardRoutes);
-app.use('/api/admin/users', adminUserRoutes);
-app.use('/api/admin/packages', adminPackageRoutes);
-app.use('/api/admin/subscriptions', adminSubscriptionRoutes);
-app.use('/api/admin/transactions', adminTransactionRoutes);
+// Use centralized routes
+app.use('/api', routes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
+interface Report {
+  id: number;
+  name: string;
+  created_at: string;
+  status: string;
+}
+
 const AdminReports: React.FC = () => {
-  const [reports, setReports] = useState<any[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

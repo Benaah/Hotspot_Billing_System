@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
+interface Transaction {
+  id: string;
+  user_name: string;
+  amount: number;
+  status: string;
+  created_at: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalPackages, setTotalPackages] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [activeSubscriptions, setActiveSubscriptions] = useState(0);
+  const [newUsers, setNewUsers] = useState(0);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
@@ -25,6 +36,9 @@ const AdminDashboard: React.FC = () => {
       setTotalUsers(data.totalUsers);
       setTotalPackages(data.totalPackages);
       setTotalRevenue(data.totalRevenue);
+      setActiveSubscriptions(data.activeSubscriptions);
+      setNewUsers(data.newUsers);
+      setRecentTransactions(data.recentTransactions);
     } catch (error) {
       setError((error as Error).message);
     } finally {
@@ -63,6 +77,36 @@ const AdminDashboard: React.FC = () => {
           >
             <h2 className="text-lg font-semibold">Total Revenue</h2>
             <p className="text-2xl">${totalRevenue.toFixed(2)}</p>
+          </div>
+          <div
+            className={`${
+              theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+            } p-4 rounded shadow`}
+          >
+            <h2 className="text-lg font-semibold">Active Subscriptions</h2>
+            <p className="text-2xl">{activeSubscriptions}</p>
+          </div>
+          <div
+            className={`${
+              theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+            } p-4 rounded shadow`}
+          >
+            <h2 className="text-lg font-semibold">New Users (30 days)</h2>
+            <p className="text-2xl">{newUsers}</p>
+          </div>
+          <div
+            className={`${
+              theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+            } p-4 rounded shadow`}
+          >
+            <h2 className="text-lg font-semibold">Recent Transactions</h2>
+            <ul className="list-disc list-inside max-h-40 overflow-y-auto">
+              {recentTransactions.map((tx) => (
+                <li key={tx.id}>
+                  {tx.user_name} - ${tx.amount} - {tx.status} - {new Date(tx.created_at).toLocaleDateString()}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
