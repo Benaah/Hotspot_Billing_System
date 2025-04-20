@@ -1,8 +1,10 @@
-const express = require('express');
+import express from 'express';
+
+import db from '../db.js';
+import auth from '../middleware/auth.js';
+import admin from '../middleware/admin.js';
+
 const router = express.Router();
-const db = require('../db');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
 
 // Get user's active subscription
 router.get('/active', auth, async (req, res) => {
@@ -40,7 +42,7 @@ router.get('/active', auth, async (req, res) => {
       package: {
         name: subscription.package_name,
         description: subscription.package_description,
-        price: subscription.package_price,
+        price: subscription.price,
         duration_hours: subscription.package_duration_hours,
         data_limit_mb: subscription.package_data_limit_mb
       }
@@ -193,4 +195,4 @@ router.get('/admin', [auth, admin], async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

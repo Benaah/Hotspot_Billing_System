@@ -1,12 +1,13 @@
-const express = require('express');
+import express from 'express';
+import db from '../db.js';
+import bcrypt from 'bcrypt';
+import auth from '../middleware/auth.js';
+import { authenticateToken } from '../middleware/auth.js';
+
 const router = express.Router();
-const db = require('../db');
-const bcrypt = require('bcrypt');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
 
 // Get current user
-router.get('/me', auth, async (req, res) => {
+router.get('/me', authenticateToken, async (req, res) => {
   try {
     const result = await db.query(
       'SELECT id, email, full_name, phone_number, role, is_active, created_at FROM users WHERE id = $1',
@@ -25,7 +26,7 @@ router.get('/me', auth, async (req, res) => {
 });
 
 // Update user profile
-router.put('/updateProfile', auth, async (req, res) => {
+router.put('/updateProfile', authenticateToken, async (req, res) => {
   try {
     const { full_name, phone_number } = req.body;
     
@@ -42,7 +43,7 @@ router.put('/updateProfile', auth, async (req, res) => {
 });
 
 // Update password
-router.put('/updatePassword', auth, async (req, res) => {
+router.put('/updatePassword', authenticateToken, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     
@@ -73,7 +74,7 @@ router.put('/updatePassword', auth, async (req, res) => {
 });
 
 // Admin: Get all users
-router.get('/admin', [auth, admin], async (req, res) => {
+router.get('/admin', [authenticateToken, auth], async (req, res) => {
   try {
     const result = await db.query(
       'SELECT id, email, full_name, phone_number, role, is_active, created_at FROM users ORDER BY created_at DESC'
@@ -87,7 +88,7 @@ router.get('/admin', [auth, admin], async (req, res) => {
 });
 
 // Admin: Update user
-router.put('/admin/:id', [auth, admin], async (req, res) => {
+router.put('/admin/:id', [authenticateToken, auth], async (req, res) => {
   try {
     const { email, full_name, phone_number, role, is_active } = req.body;
     
@@ -107,4 +108,23 @@ router.put('/admin/:id', [auth, admin], async (req, res) => {
   }
 });
 
-module.exports = router;
+// Admin: Delete user
+router.delete('/admin/:id', [authenticateToken, auth], async (req, res) => {
+  try {
+    const result = await db.query(
+      'DELETE FROM users WHERE id = $1 RETURNING *',
+      [req.params.id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Admin delete user error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+export default router;

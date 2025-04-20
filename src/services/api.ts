@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -39,5 +40,26 @@ api.interceptors.response.use(
     return Promise.reject(new Error(errorMessage));
   }
 );
+
+// WhatsApp API calls
+export const sendWhatsAppMessage = (to: string, body: string) => {
+  return api.post('/whatsapp/send-message', { to, body });
+};
+
+export const sendWhatsAppVoucher = (to: string, voucherCode: string) => {
+  return api.post('/whatsapp/send-voucher', { to, voucherCode });
+};
+
+export const sendWhatsAppTransactionStatus = (to: string, transaction: any) => {
+  return api.post('/whatsapp/send-transaction-status', { to, transaction });
+};
+
+export const sendWhatsAppPackageStatus = (to: string, packageInfo: any) => {
+  return api.post('/whatsapp/send-package-status', { to, packageInfo });
+};
+
+export const sendWhatsAppSubscriptionStatus = (to: string, subscription: any) => {
+  return api.post('/whatsapp/send-subscription-status', { to, subscription });
+};
 
 export default api;

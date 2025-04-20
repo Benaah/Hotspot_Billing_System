@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import axios from 'axios';
+import db from '../db.js';
+import auth from '../middleware/auth.js';
+
 const router = express.Router();
-const axios = require('axios');
-const db = require('../db');
-const auth = require('../middleware/auth');
 
 // M-Pesa credentials
 const MPESA_CONSUMER_KEY = process.env.MPESA_CONSUMER_KEY;
@@ -252,4 +253,4 @@ router.get('/status/:checkoutRequestId', auth, async (req, res) => {
         }
 })
 
-module.exports = router;
+export default router;

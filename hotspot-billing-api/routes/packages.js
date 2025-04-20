@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const db = require('../db');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
+import db from '../db.js';
+import auth from '../middleware/auth.js';
+import admin from '../middleware/admin.js';
 
 // Get all active packages (public)
 router.get('/', async (req, res) => {
@@ -108,4 +108,4 @@ router.delete('/:id', [auth, admin], async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

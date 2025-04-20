@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { Pool } = require('pg');
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -207,4 +207,4 @@ router.post('/signout', (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
-module.exports = router;
+export default router;

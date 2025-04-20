@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import db from '../db.js';
+import auth from '../middleware/auth.js';
+import admin from '../middleware/admin.js';
+
 const router = express.Router();
-const db = require('../db');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
 
 // Get user transactions
 router.get('/user/:userId', auth, async (req, res) => {
@@ -162,7 +163,7 @@ router.get('/:id', auth, async (req, res) => {
 // Admin: Update transaction status
 router.put('/:id', [auth, admin], async (req, res) => {
   try {
-    const { status, mpesa_receipt_number } = req.body;
+    const { status, mpesa_receipt_number, phone_number } = req.body;
     
     const result = await db.query(
       `UPDATE transactions 
@@ -187,6 +188,15 @@ router.put('/:id', [auth, admin], async (req, res) => {
          WHERE id = $1`,
         [result.rows[0].subscription_id]
       );
+    }
+    
+    // Send WhatsApp message about transaction status
+    if (phone_number) {
+      try {
+        await whatsappService.sendTransactionStatus(phone_number, result.rows[0]);
+      } catch (err) {
+        console.error('Failed to send WhatsApp transaction status:', err);
+      }
     }
     
     res.json(result.rows[0]);
@@ -244,4 +254,4 @@ router.get('/stats/summary', [auth, admin], async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

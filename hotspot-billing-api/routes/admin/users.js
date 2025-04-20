@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const db = require('../../db');
-const bcrypt = require('bcrypt');
-const auth = require('../../middleware/auth');
-const admin = require('../../middleware/admin');
+import db from '../../db.js';
+import bcrypt from 'bcrypt';
+import auth from '../../middleware/auth.js';
+import admin from '../../middleware/admin.js';
 
 // Protect all routes
 router.use(auth, admin);
@@ -224,4 +224,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

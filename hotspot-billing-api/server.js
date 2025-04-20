@@ -1,14 +1,19 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-const { Pool } = require('pg');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import pkg from 'pg';
+import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+
+// Load environment variables
+dotenv.config();
 
 // Create Express app
 const app = express();
 const port = process.env.PORT || 5000;
+const { Pool } = pkg;
 
 // Set up middleware
 app.use(helmet()); // Security headers
@@ -43,21 +48,22 @@ pool.query('SELECT NOW()', (err, res) => {
 });
 
 // Routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const packageRoutes = require('./routes/packages');
-const subscriptionRoutes = require('./routes/subscriptions');
-const transactionRoutes = require('./routes/transactions');
-const mpesaRoutes = require('./routes/mpesa');
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
+import packageRoutes from './routes/packages.js';
+import subscriptionRoutes from './routes/subscriptions.js';
+import transactionRoutes from './routes/transactions.js';
+import mpesaRoutes from './routes/mpesa.js';
 
 // Admin routes
-const adminDashboardRoutes = require('./routes/admin');
-const adminUserRoutes = require('./routes/admin/users');
-const adminPackageRoutes = require('./routes/admin/packages');
-const adminSubscriptionRoutes = require('./routes/admin/subscriptions');
-const adminTransactionRoutes = require('./routes/admin/transactions');
+import adminDashboardRoutes from './routes/admin.js';
+import adminUserRoutes from './routes/admin/users.js';
+import adminPackageRoutes from './routes/admin/packages.js';
+import adminSubscriptionRoutes from './routes/admin/subscriptions.js';
+import adminTransactionRoutes from './routes/admin/transactions.js';
 
-const jwt = require('jsonwebtoken');
+// Import WhatsApp routes
+import whatsappRoutes from './routes/whatsapp.js';
 
 // Ensure your auth routes are properly configured
 app.use('/api/auth', authRoutes);
@@ -79,11 +85,16 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Export the middleware for use in route files
-app.locals.authenticateToken = authenticateToken;app.use('/api/users', userRoutes);
+app.locals.authenticateToken = authenticateToken;
+
+app.use('/api/users', userRoutes);
 app.use('/api/packages', packageRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/mpesa', mpesaRoutes);
+
+// Use WhatsApp routes
+app.use('/api/whatsapp', whatsappRoutes);
 
 // Use admin routes
 app.use('/api/admin', adminDashboardRoutes);
